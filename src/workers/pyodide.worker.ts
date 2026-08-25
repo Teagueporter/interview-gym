@@ -6,6 +6,7 @@ self.onmessage = async (event: MessageEvent<{ code: string; testCode: string }>)
   const started = performance.now();
   pyodidePromise ??= loadPyodide();
   const pyodide = await pyodidePromise;
+  self.postMessage({ type: "ready" });
   const harness = `
 import traceback
 
@@ -41,15 +42,18 @@ result
       total: number;
       failures: { name: string; message: string }[];
     };
-    self.postMessage({ ...result, durationMs: Math.round(performance.now() - started) });
+    self.postMessage({ type: "result", result: { ...result, durationMs: Math.round(performance.now() - started) } });
   } catch (error) {
     self.postMessage({
-      passed: 0,
-      failed: 1,
-      total: 1,
-      durationMs: Math.round(performance.now() - started),
-      failures: [{ name: "Runtime error", message: error instanceof Error ? error.message : String(error) }],
-      error: error instanceof Error ? error.message : String(error),
+      type: "result",
+      result: {
+        passed: 0,
+        failed: 1,
+        total: 1,
+        durationMs: Math.round(performance.now() - started),
+        failures: [{ name: "Runtime error", message: error instanceof Error ? error.message : String(error) }],
+        error: error instanceof Error ? error.message : String(error),
+      },
     });
   }
 };
