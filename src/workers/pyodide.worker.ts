@@ -4,10 +4,11 @@ let pyodidePromise: ReturnType<typeof loadPyodide> | null = null;
 
 self.onmessage = async (event: MessageEvent<{ code: string; testCode: string }>) => {
   const started = performance.now();
-  pyodidePromise ??= loadPyodide();
-  const pyodide = await pyodidePromise;
-  self.postMessage({ type: "ready" });
-  const harness = `
+  try {
+    pyodidePromise ??= loadPyodide({ indexURL: "/pyodide/" });
+    const pyodide = await pyodidePromise;
+    self.postMessage({ type: "ready" });
+    const harness = `
 import traceback
 
 result = {"passed": 0, "failed": 0, "total": 0, "failures": []}
@@ -34,7 +35,7 @@ except Exception:
     result["failures"].append({"name": "Runtime error", "message": traceback.format_exc(limit=5)})
 result
 `;
-  try {
+
     const proxy = await pyodide.runPythonAsync(harness);
     const result = proxy.toJs({ dict_converter: Object.fromEntries }) as {
       passed: number;
@@ -51,7 +52,7 @@ result
         failed: 1,
         total: 1,
         durationMs: Math.round(performance.now() - started),
-        failures: [{ name: "Runtime error", message: error instanceof Error ? error.message : String(error) }],
+        failures: [{ name: "Python runtime error", message: error instanceof Error ? error.message : String(error) }],
         error: error instanceof Error ? error.message : String(error),
       },
     });
