@@ -1,36 +1,120 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Interview Gym
+
+Interview Gym is a lightweight Python interview warmup app. It is designed for short, repetitive implementation drills that build fluency with common interview primitives before doing full LeetCode-style problems.
+
+The goal is simple:
+
+```text
+Open app -> drill Python mechanics -> leave and do deeper practice
+```
+
+## Features
+
+- Daily warmup sessions
+- Python drill editor powered by Monaco
+- Browser-only Python execution with Pyodide in a Web Worker
+- 3-second execution timeout for infinite loop protection
+- Hidden test harness feedback
+- Manual confidence ratings: clean, hesitated, hard, failed
+- Leitner-style spaced repetition
+- Skill mastery scoring
+- Local progress history
+- Reference templates with direct practice links
+- Export/import progress as JSON
+
+## Tech Stack
+
+- Next.js App Router
+- TypeScript
+- React
+- Tailwind CSS
+- Monaco Editor
+- Pyodide
+- Web Workers
+- localStorage persistence
 
 ## Getting Started
 
-First, run the development server:
+Install dependencies:
+
+```bash
+npm install
+```
+
+Start the local app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+[http://localhost:3010](http://localhost:3010)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Interview Gym intentionally uses port `3010` so it does not conflict with other local apps that use `3000`.
 
-## Learn More
+## Scripts
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Starts the development server on port `3010`.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+npm run dev:3000
+```
 
-## Deploy on Vercel
+Starts the development server on port `3000`.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+npm run build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Creates a production build.
+
+```bash
+npm run start:local
+```
+
+Serves the production build on port `3010` after running `npm run build`.
+
+```bash
+npm run lint
+```
+
+Runs ESLint.
+
+## Persistence
+
+Progress is stored locally in the browser with `localStorage`. There is no account system, database, or server-side code execution.
+
+Use Settings -> Export Progress to back up your progress as JSON, and Settings -> Import Progress to restore it later.
+
+## Localhost Notes
+
+`localhost` only works while the Next.js server is running on your machine. If you close your computer or stop the terminal process, start it again with:
+
+```bash
+npm run dev
+```
+
+For a permanent public URL, deploy the app to Vercel or another Next.js host.
+
+## Project Structure
+
+```text
+src/
+  app/          App Router pages
+  components/   UI and drill runner components
+  data/         Drill bank and skill labels
+  lib/          scheduling, scoring, storage, execution
+  types/        Shared TypeScript types
+  workers/      Pyodide execution worker
+```
+
+## Safety Model
+
+User Python runs in the browser through Pyodide inside a Web Worker. The app does not send user code to a backend for execution.
+
+When a run exceeds the timeout, the worker is terminated and recreated so infinite loops do not freeze the UI.
