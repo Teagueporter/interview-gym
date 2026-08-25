@@ -4,11 +4,12 @@ import type { TestResult } from "@/types/progress";
 
 type WorkerMessage =
   | { type: "ready" }
+  | { type: "status"; status: string }
   | { type: "result"; result: TestResult };
 
 export function runPython(code: string, testCode: string, timeoutMs = 3000): Promise<TestResult> {
   return new Promise((resolve) => {
-    const worker = new Worker(new URL("../workers/pyodide.worker.ts", import.meta.url), { type: "module" });
+    const worker = new Worker("/pyodide/pyodide.worker.mjs", { type: "module" });
     let executionTimer: number | null = null;
     const loadTimer = window.setTimeout(() => {
       worker.terminate();
@@ -36,6 +37,11 @@ export function runPython(code: string, testCode: string, timeoutMs = 3000): Pro
             timedOut: true,
           });
         }, timeoutMs);
+        return;
+      }
+
+      if (event.data.type === "status") {
+        console.info(`[python-worker] ${event.data.status}`);
         return;
       }
 

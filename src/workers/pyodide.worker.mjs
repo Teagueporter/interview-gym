@@ -1,11 +1,19 @@
-import { loadPyodide } from "pyodide";
+import { loadPyodide } from "./pyodide.mjs";
 
-let pyodidePromise: ReturnType<typeof loadPyodide> | null = null;
+let pyodidePromise = null;
 
-self.onmessage = async (event: MessageEvent<{ code: string; testCode: string }>) => {
+self.onmessage = async (event) => {
   const started = performance.now();
   try {
-    pyodidePromise ??= loadPyodide({ indexURL: "/pyodide/" });
+    const indexURL = new URL("/pyodide/", self.location.origin).href;
+    self.postMessage({ type: "status", status: "worker started" });
+    for (const asset of ["pyodide-lock.json", "pyodide.asm.mjs", "pyodide.asm.wasm", "python_stdlib.zip"]) {
+      const response = await fetch(new URL(asset, indexURL), { cache: "no-store" });
+      if (!response.ok) throw new Error(`${asset} returned HTTP ${response.status}`);
+      self.postMessage({ type: "status", status: `${asset} loaded (${response.headers.get("content-length") ?? "unknown"} bytes)` });
+    }
+    self.postMessage({ type: "status", status: "starting Pyodide" });
+    pyodidePromise ??= loadPyodide({ indexURL });
     const pyodide = await pyodidePromise;
     self.postMessage({ type: "ready" });
     const harness = `
@@ -37,12 +45,7 @@ result
 `;
 
     const proxy = await pyodide.runPythonAsync(harness);
-    const result = proxy.toJs({ dict_converter: Object.fromEntries }) as {
-      passed: number;
-      failed: number;
-      total: number;
-      failures: { name: string; message: string }[];
-    };
+    const result = proxy.toJs({ dict_converter: Object.fromEntries });
     self.postMessage({ type: "result", result: { ...result, durationMs: Math.round(performance.now() - started) } });
   } catch (error) {
     self.postMessage({
@@ -59,7 +62,7 @@ result
   }
 };
 
-function indent(value: string) {
+function indent(value) {
   return value
     .split("\n")
     .map((line) => `    ${line}`)
