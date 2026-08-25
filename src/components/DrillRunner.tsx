@@ -9,6 +9,7 @@ import { applyAttempt } from "@/lib/storage";
 import { useGymState } from "@/lib/useGymState";
 import { runPython } from "@/lib/runner";
 import { formatDuration } from "@/lib/time";
+import { drillPatternNotes, skillGuides } from "@/data/skills";
 import { CodeEditor } from "./CodeEditor";
 
 export function DrillRunner({ drill, sessionIds = [] }: { drill: Drill; sessionIds?: string[] }) {
@@ -43,6 +44,8 @@ export function DrillRunner({ drill, sessionIds = [] }: { drill: Drill; sessionI
 
   const currentIndex = sessionIds.indexOf(drill.id);
   const nextId = currentIndex >= 0 ? sessionIds[currentIndex + 1] : undefined;
+  const skillGuide = skillGuides.find((guide) => guide.skill === drill.skill);
+  const patternNote = drillPatternNotes[drill.id];
 
   async function execute() {
     if (running || completed) return;
@@ -92,6 +95,20 @@ export function DrillRunner({ drill, sessionIds = [] }: { drill: Drill; sessionI
           </div>
         </div>
         <p className="whitespace-pre-line text-sm leading-6 text-zinc-300">{drill.prompt}</p>
+        {(patternNote || skillGuide) && (
+          <div className="mt-5 rounded-md border border-emerald-900/70 bg-emerald-950/20 p-4">
+            <h2 className="font-semibold text-emerald-100">What this pattern is for</h2>
+            <p className="mt-2 text-sm leading-6 text-zinc-300">
+              {patternNote?.whatItDoes ?? skillGuide?.whyItFits}
+            </p>
+            <p className="mt-3 text-sm leading-6 text-zinc-300">
+              <span className="font-medium text-zinc-100">Use it when:</span> {patternNote?.useWhen ?? skillGuide?.useWhen}
+            </p>
+            <p className="mt-2 text-sm leading-6 text-zinc-300">
+              <span className="font-medium text-zinc-100">Look for:</span> {patternNote?.lookFor ?? skillGuide?.lookFor.join(", ")}
+            </p>
+          </div>
+        )}
         <div className="mt-5 flex flex-wrap gap-2">
           <button onClick={execute} disabled={running || completed} className="inline-flex items-center gap-2 rounded-md bg-emerald-400 px-4 py-2 text-sm font-semibold text-zinc-950 disabled:opacity-50">
             <Play size={16} /> {running ? "Running..." : "Run Tests"}
@@ -163,4 +180,3 @@ function Review({ drill, code }: { drill: Drill; code: string }) {
 export function ResultPill({ passed }: { passed: boolean }) {
   return passed ? <Check className="text-emerald-300" size={16} /> : <X className="text-red-300" size={16} />;
 }
-

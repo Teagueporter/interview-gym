@@ -47,6 +47,20 @@ export interface SkillGuide {
   whyItFits: string;
 }
 
+export interface DrillPatternNote {
+  whatItDoes: string;
+  useWhen: string;
+  lookFor: string;
+}
+
+export const drillPatternNotes: Record<string, DrillPatternNote> = {
+  "hash-index-map": {
+    whatItDoes: "Stores each value alongside its position, such as {4: 0, 7: 1}, so you can answer value-to-index lookups in constant time.",
+    useWhen: "A later part of the problem needs to find a value's position, especially while scanning the list once.",
+    lookFor: "pair sums, target minus current value, return the indexes, complement, find the matching value",
+  },
+};
+
 export const skillGuides: SkillGuide[] = [
   {
     skill: "hashing",
