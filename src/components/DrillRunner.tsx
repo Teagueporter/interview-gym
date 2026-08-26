@@ -109,6 +109,21 @@ export function DrillRunner({ drill, sessionIds = [] }: { drill: Drill; sessionI
             </p>
           </div>
         )}
+        {drill.walkthrough && (
+          <div className="mt-4 rounded-md border border-zinc-800 bg-zinc-900 p-4">
+            <h2 className="font-semibold">Example walkthrough</h2>
+            <p className="mt-3 font-mono text-xs text-emerald-200">Input: {drill.walkthrough.input}</p>
+            <ol className="mt-3 space-y-2 text-sm leading-6 text-zinc-300">
+              {drill.walkthrough.steps.map((step, index) => (
+                <li key={step} className="flex gap-3">
+                  <span className="font-mono text-xs text-zinc-500">{index + 1}.</span>
+                  <span>{step}</span>
+                </li>
+              ))}
+            </ol>
+            <p className="mt-3 font-mono text-xs text-emerald-200">Output: {drill.walkthrough.output}</p>
+          </div>
+        )}
         <div className="mt-5 flex flex-wrap gap-2">
           <button onClick={execute} disabled={running || completed} className="inline-flex items-center gap-2 rounded-md bg-emerald-400 px-4 py-2 text-sm font-semibold text-zinc-950 disabled:opacity-50">
             <Play size={16} /> {running ? "Running..." : "Run Tests"}

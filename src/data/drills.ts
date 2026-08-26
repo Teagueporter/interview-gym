@@ -1,5 +1,29 @@
 import type { Drill, Skill } from "@/types/drill";
 
+const hintsBySkill: Record<Skill, string[]> = {
+  python: ["Track the input, output, and empty-input behavior.", "Choose the built-in or collection that matches the operation.", "Check whether your loop handles the first and last item correctly."],
+  hashing: ["Ask what must be found quickly: a value, a count, or a prior index.", "Create the map or set before the scan and update it at the right moment.", "Test duplicates, missing values, and an empty input."],
+  "two-pointers": ["Name what the left and right pointers represent.", "Use the input order to decide which pointer can move safely.", "Check adjacent pointers and inputs with no valid pair."],
+  "sliding-window": ["Define what makes the current window valid.", "Add the item entering on the right and remove the item leaving on the left.", "Check k equal to 1, the full input, and a window that never becomes valid."],
+  stack: ["Write down what an item still needs before it can be resolved.", "Push unresolved state and pop only when the new item closes or resolves it.", "Check empty input and a leftover stack at the end."],
+  "binary-search": ["State the monotonic condition that separates the two halves.", "Choose inclusive or half-open boundaries before writing the loop.", "Check an empty input, one item, and a target outside the range."],
+  "linked-list": ["Draw the nodes and label every pointer before changing links.", "Save next before rewiring the current node.", "Check an empty list, one node, and the final pointer."],
+  tree: ["Write the answer for an empty node first.", "Decide the traversal order and what each child returns.", "Check a leaf and a tree with only one child."],
+  dfs: ["Define when a node or cell should stop recursion.", "Mark visited before exploring neighbors.", "Check cycles, boundaries, and a start that cannot be explored."],
+  bfs: ["Put the start state in a FIFO queue and define its distance or level.", "Mark a node when enqueueing so it is not added twice.", "Check the start itself, unreachable targets, and an empty structure."],
+  heap: ["Decide which item must stay at the heap root.", "Push candidates, then remove items that no longer belong in the heap.", "Check k larger than the input and duplicate priorities."],
+  graph: ["Choose an adjacency representation before traversing.", "Build every directed edge in the correct direction.", "Check nodes with no outgoing edges and repeated edges."],
+  backtracking: ["Define the state in path and the condition for a complete answer.", "Choose, recurse, then undo the choice before trying the next option.", "Check the empty input and make a copy when saving a result."],
+  "topological-sort": ["Translate each prerequisite into a directed edge.", "Track either indegrees or the current DFS state.", "Check whether every node was processed; leftover nodes indicate a cycle."],
+  "prefix-sum": ["Choose whether prefix[i] means values before or through index i.", "Build one running total and use subtraction for each range.", "Check ranges starting at zero and single-item ranges."],
+  "monotonic-stack": ["Keep indexes whose answer has not been found yet.", "Pop while the new value resolves the stack-top condition.", "Check values that never find a larger or smaller neighbor."],
+  "union-find": ["Start each item as its own representative component.", "Find both roots before joining two components.", "Only reduce the component count when the roots differ."],
+  dp: ["Write the smallest state and its answer first.", "Identify which earlier states produce the current state.", "Check the first few values by hand before optimizing storage."],
+  intervals: ["Sort by the endpoint that makes the next decision local.", "Compare the next interval with the last interval you kept.", "Check touching intervals, nested ranges, and an empty list."],
+  greedy: ["State the local choice you want to make and why it leaves room for the future.", "Sort by the property that makes that choice safe.", "Check whether equal boundaries should count as compatible."],
+  trie: ["Represent one character transition per level.", "Create missing nodes while walking the word.", "Check prefixes, missing words, and the empty string."],
+};
+
 const makeDrill = (
   id: string,
   title: string,
@@ -11,6 +35,7 @@ const makeDrill = (
   explanation: string,
   targetTimeSeconds = 120,
   tags: string[] = [],
+  walkthrough?: Drill["walkthrough"],
 ): Drill => ({
   id,
   title,
@@ -22,14 +47,11 @@ const makeDrill = (
   testCode: tests.trim(),
   referenceSolution: referenceSolution.trim(),
   explanation,
-  hints: [
-    "Name the invariant before writing the loop.",
-    "Initialize the data structure before the main pass.",
-    "Check the smallest input that should work.",
-  ],
+  hints: hintsBySkill[skill],
   expectedTimeComplexity: "O(n)",
   expectedSpaceComplexity: "O(n)",
   tags,
+  walkthrough,
 });
 
 const simpleTests = (fn: string, assertions: string[]) => `
@@ -50,7 +72,16 @@ export const drills: Drill[] = [
   makeDrill("py-heap-push-pop", "Heap Push Pop", "heap", "Push every value into a min heap and return values in sorted order.", "import heapq\n\ndef heap_sort_values(nums):\n    pass", simpleTests("heap_sort_values", ["heap_sort_values([3,1,2]) == [1,2,3]", "heap_sort_values([]) == []", "heap_sort_values([5,-1,5]) == [-1,5,5]"]), "import heapq\n\ndef heap_sort_values(nums):\n    heap = []\n    for num in nums:\n        heapq.heappush(heap, num)\n    return [heapq.heappop(heap) for _ in range(len(heap))]", "Python heaps are min-heaps; push, then pop the smallest.", 120),
   makeDrill("py-sort-key", "Sort With Key", "python", "Sort intervals by their end value.", "def sort_by_end(intervals):\n    pass", simpleTests("sort_by_end", ["sort_by_end([[3,4],[1,2],[2,3]]) == [[1,2],[2,3],[3,4]]", "sort_by_end([[5,1],[2,0]]) == [[2,0],[5,1]]"]), "def sort_by_end(intervals):\n    return sorted(intervals, key=lambda interval: interval[1])", "Lambda keys are a small syntax detail that should not cost interview time.", 60),
   makeDrill("py-set-dedupe", "Set Deduplication", "python", "Return unique values preserving first-seen order.", "def dedupe(nums):\n    pass", simpleTests("dedupe", ["dedupe([3,1,3,2,1]) == [3,1,2]", "dedupe([]) == []"]), "def dedupe(nums):\n    seen = set()\n    out = []\n    for num in nums:\n        if num not in seen:\n            seen.add(num)\n            out.append(num)\n    return out", "Use a set for membership and a list for output order.", 90),
-  makeDrill("hash-index-map", "Value Index Map", "hashing", "Return a value to index map for the input list.", "def index_map(nums):\n    pass", simpleTests("index_map", ["index_map([4,7,9]) == {4:0, 7:1, 9:2}", "index_map([]) == {}"]), "def index_map(nums):\n    return {value: i for i, value in enumerate(nums)}", "Index maps are the base primitive under two-sum style problems.", 75),
+  makeDrill("hash-index-map", "Value Index Map", "hashing", "Return a value to index map for the input list.", "def index_map(nums):\n    pass", simpleTests("index_map", ["index_map([4,7,9]) == {4:0, 7:1, 9:2}", "index_map([]) == {}"]), "def index_map(nums):\n    return {value: i for i, value in enumerate(nums)}", "Index maps are the base primitive under two-sum style problems.", 75, [], {
+    input: "nums = [4, 7, 9]",
+    steps: [
+      "Read 4 at index 0 -> map becomes {4: 0}.",
+      "Read 7 at index 1 -> map becomes {4: 0, 7: 1}.",
+      "Read 9 at index 2 -> map becomes {4: 0, 7: 1, 9: 2}.",
+      "In a pair-sum problem, seeing 7 with target 11 lets you look up 4 immediately instead of scanning backward.",
+    ],
+    output: "{4: 0, 7: 1, 9: 2}",
+  }),
   makeDrill("hash-count-frequencies", "Count Frequencies", "hashing", "Return True if any value appears more than once.", "def contains_duplicate(nums):\n    pass", simpleTests("contains_duplicate", ["contains_duplicate([1,2,1]) is True", "contains_duplicate([1,2,3]) is False"]), "def contains_duplicate(nums):\n    seen = set()\n    for num in nums:\n        if num in seen:\n            return True\n        seen.add(num)\n    return False", "Most hashing drills reduce to a constant-time seen check.", 90),
   makeDrill("graph-adjacency-list", "Build Adjacency List", "graph", "Given directed edges, return an adjacency list.", "from collections import defaultdict\n\ndef build_graph(edges):\n    pass", simpleTests("build_graph", ["build_graph([(1,2),(1,3),(2,3)]) == {1:[2,3], 2:[3]}", "build_graph([]) == {}"]), "from collections import defaultdict\n\ndef build_graph(edges):\n    graph = defaultdict(list)\n    for src, dst in edges:\n        graph[src].append(dst)\n    return dict(graph)", "Graph setup should be mechanical before traversal starts.", 100),
   makeDrill("two-pointer-opposite", "Opposite-End Pointers", "two-pointers", "Return True if a sorted list has two numbers summing to target.", "def two_sum_sorted(nums, target):\n    pass", simpleTests("two_sum_sorted", ["two_sum_sorted([1,2,4,7], 6) is True", "two_sum_sorted([1,2,4], 8) is False"]), "def two_sum_sorted(nums, target):\n    left, right = 0, len(nums) - 1\n    while left < right:\n        total = nums[left] + nums[right]\n        if total == target:\n            return True\n        if total < target:\n            left += 1\n        else:\n            right -= 1\n    return False", "Sorted arrays let pointer movement discard impossible pairs.", 120),

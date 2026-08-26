@@ -23,6 +23,12 @@ export type Skill =
 
 export type Difficulty = "fundamental" | "intermediate" | "advanced";
 
+export interface DrillWalkthrough {
+  input: string;
+  steps: string[];
+  output: string;
+}
+
 export interface Drill {
   id: string;
   title: string;
@@ -39,5 +45,5 @@ export interface Drill {
   expectedSpaceComplexity?: string;
   tags: string[];
   prerequisites?: string[];
+  walkthrough?: DrillWalkthrough;
 }
-
